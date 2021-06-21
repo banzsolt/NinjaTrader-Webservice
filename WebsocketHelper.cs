@@ -25,6 +25,7 @@ namespace NinjaTrader.Custom
             if (!wasInitialized)
             {
                 Init();
+                wasInitialized = true;
             }
 
             if (NewMessage != null)
@@ -38,6 +39,7 @@ namespace NinjaTrader.Custom
 
     public class SpeedoWebService : WebSocketBehavior
     {
+        public static List<WebSocketBehavior> webscoketBehaviors = new List<WebSocketBehavior>();
         private static bool alreadyConnected = false;
 
         public SpeedoWebService()
@@ -51,16 +53,19 @@ namespace NinjaTrader.Custom
 
         protected override void OnOpen()
         {
-
+            webscoketBehaviors.Add(this);
         }
 
         private void NewMessageReceived(object sender, SpeedometerParameter e)
         {
             try
             {
-                if (this.State == WebSocketSharp.WebSocketState.Open)
-                {                    
-                    this.Send(JObject.FromObject(e).ToString());
+                foreach (SpeedoWebService webscoketBehavior in webscoketBehaviors)
+                {
+                    if (webscoketBehavior.State == WebSocketSharp.WebSocketState.Open)
+                    {
+                        webscoketBehavior.Send(JObject.FromObject(e).ToString());
+                    }
                 }
             }
             catch (Exception)
